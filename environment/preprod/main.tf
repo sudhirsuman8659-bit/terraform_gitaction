@@ -32,5 +32,5 @@ module "virtual_machine" {
   source = "../../modules/azurrm_virtual_machine"
 
   linux_virtual_machine = var.virtual_machine
-  depends_on            = [module.public_ip]
+  depends_on            = [module.public_ip, module.subnet]
 }
