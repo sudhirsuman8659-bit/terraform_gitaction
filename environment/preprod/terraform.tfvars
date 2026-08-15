@@ -3,6 +3,10 @@ resource_group = {
     resource_group_name = "rg-123"
     location            = "centralindia"
   }
+  rgs_2 = {
+    resource_group_name = "rg-12345"
+    location            = "centralindia"
+  }
 }
 
 virtual_network = {
