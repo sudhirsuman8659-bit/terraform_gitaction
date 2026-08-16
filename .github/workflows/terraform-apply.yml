@@ -4,7 +4,10 @@ on:
   push:
     branches:
       - main
-
+      - '*' # Saare feature branches par pipeline trigger karega
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -39,6 +42,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Format Check
+        working-directory: environment/preprod
         run: terraform fmt -check -recursive
 
       - name: Terraform Validate
@@ -57,8 +61,12 @@ jobs:
     name: Terraform Apply
     runs-on: ubuntu-latest
 
+    # Apply sirf main branch par chalega, feature branch par skip ho jayega
+    if: github.ref == 'refs/heads/main'
+
     needs: terraform-plan
 
+    # GitHub Environment Protection Rule ke through manual approval mange-ga
     environment:
       name: production
 
