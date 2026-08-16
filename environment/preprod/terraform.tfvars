@@ -12,7 +12,7 @@ resource_group = {
     location            = "centralindia"
   }
   rgs_4 = {
-    resource_group_name = "rg-plan" 
+    resource_group_name = "rg-plan"
     location            = "centralindia"
   }
 
