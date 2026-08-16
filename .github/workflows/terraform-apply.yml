@@ -4,10 +4,7 @@ on:
   push:
     branches:
       - main
-      - '*' # Saare feature branches par pipeline trigger karega
-  pull_request:
-    branches:
-      - main
+
   workflow_dispatch:
 
 permissions:
@@ -15,58 +12,10 @@ permissions:
   contents: read
 
 jobs:
-
-  # ==========================================
-  # Terraform Plan
-  # ==========================================
-  terraform-plan:
-    name: Terraform Plan
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Terraform Init
-        working-directory: environment/preprod
-        run: terraform init
-
-      - name: Terraform Format Check
-        working-directory: environment/preprod
-        run: terraform fmt -check -recursive
-
-      - name: Terraform Validate
-        working-directory: environment/preprod
-        run: terraform validate
-
-      - name: Terraform Plan
-        working-directory: environment/preprod
-        run: terraform plan
-
-
-  # ==========================================
-  # Terraform Apply
-  # ==========================================
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
 
-    # Apply sirf main branch par chalega, feature branch par skip ho jayega
-    if: github.ref == 'refs/heads/main'
-
-    needs: terraform-plan
-
-    # GitHub Environment Protection Rule ke through manual approval mange-ga
     environment:
       name: production
 
@@ -87,6 +36,17 @@ jobs:
       - name: Terraform Init
         working-directory: environment/preprod
         run: terraform init
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        working-directory: environment/preprod
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: environment/preprod
+        run: terraform plan
 
       - name: Terraform Apply
         working-directory: environment/preprod
