@@ -11,8 +11,14 @@ resource_group = {
     resource_group_name = "rg-sonu"
     location            = "centralindia"
   }
+  rgs_4 = {
+    resource_group_name = "rg-plan" 
+    location            = "centralindia"
+  }
 
 }
+
+
 
 virtual_network = {
   vnet_1 = {
