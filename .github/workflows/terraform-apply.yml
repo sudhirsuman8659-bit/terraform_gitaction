@@ -4,10 +4,7 @@ on:
   push:
     branches:
       - main
-      - '*' # Saare feature branches par pipeline trigger karega
-  pull_request:
-    branches:
-      - main
+      - feature/terraform-plan
   workflow_dispatch:
 
 permissions:
@@ -17,15 +14,11 @@ permissions:
 jobs:
 
   # ==========================================
-  # Terraform Plan
+  # 1. Terraform Plan (Bina approval ke chalega)
   # ==========================================
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
-
-    # Working OIDC subject claim (environment:production) match karne ke liye
-    environment:
-      name: production
 
     steps:
       - name: Checkout code
@@ -46,7 +39,6 @@ jobs:
         run: terraform init
 
       - name: Terraform Format Check
-        working-directory: environment/preprod
         run: terraform fmt -check -recursive
 
       - name: Terraform Validate
@@ -59,17 +51,18 @@ jobs:
 
 
   # ==========================================
-  # Terraform Apply
+  # 2. Terraform Apply (Plan ke baad approval maangega)
   # ==========================================
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
 
+    needs: terraform-plan
+
     # Apply sirf main branch par chalega
     if: github.ref == 'refs/heads/main'
 
-    needs: terraform-plan
-
+    # Is environment ki wajah se Apply start hone se pehle approval maangega
     environment:
       name: production
 
