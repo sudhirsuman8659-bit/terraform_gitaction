@@ -4,7 +4,10 @@ on:
   push:
     branches:
       - main
-
+      - '*' # Saare feature branches par pipeline trigger karega
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -12,10 +15,15 @@ permissions:
   contents: read
 
 jobs:
-  terraform-apply:
-    name: Terraform Apply
+
+  # ==========================================
+  # Terraform Plan
+  # ==========================================
+  terraform-plan:
+    name: Terraform Plan
     runs-on: ubuntu-latest
 
+    # Working OIDC subject claim (environment:production) match karne ke liye
     environment:
       name: production
 
@@ -38,6 +46,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Format Check
+        working-directory: environment/preprod
         run: terraform fmt -check -recursive
 
       - name: Terraform Validate
@@ -47,6 +56,40 @@ jobs:
       - name: Terraform Plan
         working-directory: environment/preprod
         run: terraform plan
+
+
+  # ==========================================
+  # Terraform Apply
+  # ==========================================
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+
+    # Apply sirf main branch par chalega
+    if: github.ref == 'refs/heads/main'
+
+    needs: terraform-plan
+
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: environment/preprod
+        run: terraform init
 
       - name: Terraform Apply
         working-directory: environment/preprod
